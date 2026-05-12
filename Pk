@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelEasy - Билеты на поезда, самолёты, автобусы</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background: #F0F2F5;
+            color: #1A2C3E;
+            overflow-x: hidden;
+        }
+
+        /* Layout - PC version with left sidebar */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========== LEFT SIDEBAR ========== */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1A2C3E 0%, #0F1E2E 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 100;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-logo {
+            padding: 1.8rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-logo h1 {
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar-logo h1 span {
+            color: #FF6B00;
+        }
+
+        .sidebar-logo p {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 0.3rem;
+        }
+
+        .nav-menu {
+            padding: 0 1rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1.2rem;
+            margin: 0.3rem 0;
+            border-radius: 14px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: #FF6B00;
+            color: white;
+            box-shadow: 0 4px 12px rgba(255,107,0,0.3);
+        }
+
+        .nav-item .icon {
+            font-size: 1.3rem;
+            width: 28px;
+        }
+
+        .nav-item .text {
+            font-weight: 500;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 1rem 1.5rem;
+        }
+
+        .user-section {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 2rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #FF6B00;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-email {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 1.5rem 2rem;
+            min-height: 100vh;
+        }
+
+        /* Top bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1A2C3E;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Search Card */
+        .search-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .transport-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #E8ECF0;
+            padding-bottom: 0.5rem;
+        }
+
+        .tab {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.5rem 1.2rem;
+            cursor: pointer;
+            color: #6B7A8A;
+            border-radius: 30px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: #FF6B00;
+            color: white;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #6B7A8A;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+        }
+
+        .input-group input,
+        .input-group select {
+            padding: 0.7rem 1rem;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #FF6B00;
+        }
+
+        .search-btn {
+            background: #FF6B00;
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            height: 42px;
+        }
+
+        .search-btn:hover {
+            background: #E05A00;
+        }
+
+        /* Results */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filters {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-chip {
+            background: white;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            border: 1px solid #DCE3EC;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        .filter-chip.active {
+            background: #FF6B00;
+            color: white;
+            border-color: #FF6B00;
+        }
+
+        .ticket-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ticket-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid #EDF2F7;
+        }
+
+        .ticket-card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .route-info {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .station {
+            text-align: center;
+        }
+
+        .station .time {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .station .city {
+            color: #6B7A8A;
+            font-size: 0.8rem;
+        }
+
+        .duration {
+            color: #8A9AAA;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .price-block {
+            text-align: right;
+        }
+
+        .price {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #1A2C3E;
+        }
+
+        .company {
+            font-size: 0.7rem;
+            color: #8A9AAA;
+        }
+
+        .buy-btn {
+            background: #FF6B00;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            font-weight: bold;
+            margin-top: 0.3rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .buy-btn:hover {
+            background: #E05A00;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 28px;
+            max-width: 500px;
+            width: 90%;
+            padding: 1.5rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .close-modal {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #8A9AAA;
+        }
+
+        .seat-map {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+            margin: 1.5rem 0;
+        }
+
+        .seat {
+            background: #EFF2F6;
+            padding: 0.6rem;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .seat.available:hover {
+            background: #FF6B00;
+            color: white;
+        }
+
+        .seat.selected {
+            background: #FF6B00;
+            color: white;
+        }
+
+        .seat.booked {
+            background: #DCE3EC;
+            color: #9AABBB;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+        .confirm-booking {
+            background: #FF6B00;
+            color: white;
+            border: none;
+            padding: 0.7rem;
+            width: 100%;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            .mobile-menu-toggle {
+                display: block;
+            }
+            .top-bar {
+                justify-content: space-between;
+            }
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+            .ticket-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .price-block {
+                text-align: center;
+                margin-top: 0.8rem;
+            }
+            .route-info {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <h1>Travel<span>Easy</span></h1>
+            <p>билеты на поезда, самолёты, автобусы</p>
+        </div>
+
+        <div class="nav-menu">
+            <div class="nav-item active" data-page="tickets">
+                <span class="icon">🎫</span>
+                <span class="text">Билеты</span>
+            </div>
+            <div class="nav-item" data-page="routes">
+                <span class="icon">🚆</span>
+                <span class="text">Маршруты</span>
+            </div>
+            <div class="nav-item" data-page="stations">
+                <span class="icon">📍</span>
+                <span class="text">Вокзалы и аэропорты</span>
+            </div>
+            <div class="nav-item" data-page="orders">
+                <span class="icon">📋</span>
+                <span class="text">Мои заказы</span>
+            </div>
+            <div class="nav-item" data-page="favorites">
+                <span class="icon">❤️</span>
+                <span class="text">Избранное</span>
+            </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="nav-menu">
+            <div class="nav-item" data-page="support">
+                <span class="icon">❓</span>
+                <span class="text">Поддержка</span>
+            </div>
+            <div class="nav-item" data-page="settings">
+                <span class="icon">⚙️</span>
+                <span class="text">Настройки</span>
+            </div>
+        </div>
+
+        <div class="user-section">
+            <div class="user-info">
+                <div class="user-avatar">РП</div>
+                <div class="user-details">
+                    <div class="user-name">Роман Пасынков</div>
+                    <div class="user-email">roman@example.com</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="top-bar">
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+            <h2 class="page-title" id="pageTitle">🎫 Поиск билетов</h2>
+            <div></div>
+        </div>
+
+        <!-- Search Section (visible only on tickets page) -->
+        <div id="ticketsPage">
+            <div class="search-card">
+                <div class="transport-tabs">
+                    <button class="tab active" data-transport="train">🚆 Поезда</button>
+                    <button class="tab" data-transport="plane">✈️ Самолёты</button>
+                    <button class="tab" data-transport="bus">🚌 Автобусы</button>
+                </div>
+                <div class="search-form">
+                    <div class="input-group">
+                        <label>Откуда</label>
+                        <input type="text" id="fromCity" placeholder="Город" value="Москва">
+                    </div>
+                    <div class="input-group">
+                        <label>Куда</label>
+                        <input type="text" id="toCity" placeholder="Город" value="Санкт-Петербург">
+                    </div>
+                    <div class="input-group">
+                        <label>Туда</label>
+                        <input type="date" id="dateGo" value="2026-05-20">
+                    </div>
+                    <div class="input-group">
+                        <label>Обратно</label>
+                        <input type="date" id="dateBack">
+                    </div>
+                    <button class="search-btn" id="searchBtn">Найти билеты</button>
+                </div>
+            </div>
+
+            <div class="results-header">
+                <h3>📋 Доступные билеты</h3>
+                <div class="filters">
+                    <div class="filter-chip active" data-filter="all">Все</div>
+                    <div class="filter-chip" data-filter="economy">Эконом</div>
+                    <div class="filter-chip" data-filter="business">Бизнес</div>
+                </div>
+            </div>
+
+            <div id="ticketList" class="ticket-list"></div>
+        </div>
+
+        <!-- Other pages (placeholder) -->
+        <div id="routesPage" style="display: none;">
+            <div class="search-card">
+                <h3>🗺️ Популярные маршруты</h3>
+                <div style="margin-top: 1rem;">
+                    <div class="ticket-card">🚆 Москва → Санкт-Петербург — от 3200 ₽</div>
+                    <div class="ticket-card">✈️ Москва → Сочи — от 7800 ₽</div>
+                    <div class="ticket-card">🚌 Москва → Нижний Новгород — от 1800 ₽</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="stationsPage" style="display: none;">
+            <div class="search-card">
+                <h3>🚉 Железнодорожные вокзалы и аэропорты</h3>
+                <div style="margin-top: 1rem;">
+                    <p><strong>Москва:</strong> Киевский вокзал, Ленинградский вокзал, Шереметьево, Домодедово</p>
+                    <p><strong>Санкт-Петербург:</strong> Московский вокзал, Ладожский вокзал, Пулково</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="ordersPage" style="display: none;">
+            <div class="search-card">
+                <h3>📋 История заказов</h3>
+                <p style="color: #8A9AAA; margin-top: 1rem;">У вас пока нет забронированных билетов. Начните поиск выше!</p>
+            </div>
+        </div>
+
+        <div id="favoritesPage" style="display: none;">
+            <div class="search-card">
+                <h3>❤️ Избранные маршруты</h3>
+                <p style="color: #8A9AAA; margin-top: 1rem;">Добавляйте маршруты в избранное, чтобы не потерять их.</p>
+            </div>
+        </div>
+
+        <div id="supportPage" style="display: none;">
+            <div class="search-card">
+                <h3>❓ Помощь и поддержка</h3>
+                <p>📞 Горячая линия: 8-800-555-00-00</p>
+                <p>📧 Email: support@traveleast.ru</p>
+                <p>💬 Часы работы: круглосуточно</p>
+            </div>
+        </div>
+
+        <div id="settingsPage" style="display: none;">
+            <div class="search-card">
+                <h3>⚙️ Настройки</h3>
+                <p>🌓 Отображать тёмную тему (в разработке)</p>
+                <p>🔔 Уведомления о статусе билетов</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modal for seat selection -->
+<div id="seatModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Выбор места</h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <p id="modalRouteInfo"></p>
+        <div id="seatMap" class="seat-map"></div>
+        <button id="confirmBookingBtn" class="confirm-booking">Подтвердить бронь</button>
+    </div>
+</div>
+
+<script>
+    // Mock data
+    let ticketsData = {
+        train: [
+            { id: 1, from: "Москва", to: "Санкт-Петербург", depTime: "08:00", arrTime: "12:30", duration: "4ч 30м", price: 3200, type: "economy", company: "РЖД", seats: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] },
+            { id: 2, from: "Москва", to: "Санкт-Петербург", depTime: "14:20", arrTime: "18:50", duration: "4ч 30м", price: 5400, type: "business", company: "Сапсан", seats: [1,2,3,4,5,6,7,8,9,10] },
+            { id: 3, from: "Москва", to: "Казань", depTime: "09:15", arrTime: "15:45", duration: "6ч 30м", price: 4100, type: "economy", company: "РЖД", seats: [1,2,3,4,5,6,7,8,9,10,11,12] }
+        ],
+        plane: [
+            { id: 101, from: "Москва", to: "Сочи", depTime: "10:30", arrTime: "13:00", duration: "2ч 30м", price: 7800, type: "economy", company: "Аэрофлот", seats: [1,2,3,4,5,6,7,8] },
+            { id: 102, from: "Москва", to: "Сочи", depTime: "17:45", arrTime: "20:15", duration: "2ч 30м", price: 12400, type: "business", company: "S7", seats: [1,2,3,4,5,6] }
+        ],
+        bus: [
+            { id: 201, from: "Москва", to: "Нижний Новгород", depTime: "07:00", arrTime: "13:20", duration: "6ч 20м", price: 1800, type: "economy", company: "FlixBus", seats: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16] }
+        ]
+    };
+
+    let currentTransport = "train";
+    let selectedTicket = null;
+    let bookedSeats = {};
+
+    function renderTickets(transport, filterType = "all") {
+        let tickets = ticketsData[transport] ? [...ticketsData[transport]] : [];
+        if (filterType !== "all") {
+            tickets = tickets.filter(t => t.type === filterType);
+        }
+        const container = document.getElementById("ticketList");
+        if (!container) return;
+
+        if (tickets.length === 0) {
+            container.innerHTML = '<div class="search-card" style="text-align:center;">🎫 Нет билетов по выбранным фильтрам</div>';
+            return;
+        }
+
+        container.innerHTML = tickets.map(ticket => `
+            <div class="ticket-card">
+                <div class="route-info">
+                    <div class="station">
+                        <div class="time">${ticket.depTime}</div>
+                        <div class="city">${ticket.from}</div>
+                    </div>
+                    <div class="duration">➡ ${ticket.duration}</div>
+                    <div class="station">
+                        <div class="time">${ticket.arrTime}</div>
+                        <div class="city">${ticket.to}</div>
+                    </div>
+                </div>
+                <div class="price-block">
+                    <div class="price">${ticket.price.toLocaleString()} ₽</div>
+                    <div class="company">${ticket.company}</div>
+                    <button class="buy-btn" data-id="${ticket.id}" data-transport="${transport}">Выбрать места</button>
+                </div>
+            </div>
+        `).join("");
+
+        document.querySelectorAll(".buy-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const ticketId = parseInt(btn.dataset.id);
+                const transportType = btn.dataset.transport;
+                const ticket = ticketsData[transportType].find(t => t.id === ticketId);
+                if (ticket) openSeatModal(ticket, transportType);
+            });
+        });
+    }
+
+    function openSeatModal(ticket, transportType) {
+        selectedTicket = { ...ticket, transportType };
+        const modal = document.getElementById("seatModal");
+        document.getElementById("modalRouteInfo").innerText = `${ticket.from} → ${ticket.to}, ${ticket.depTime}, ${ticket.price} ₽`;
+        
+        const seatContainer = document.getElementById("seatMap");
+        const seatKey = `${transportType}_${ticket.id}`;
+        const bookedForTicket = bookedSeats[seatKey] || [];
+        
+        seatContainer.innerHTML = "";
+        ticket.seats.forEach(seatNum => {
+            const isBooked = bookedForTicket.includes(seatNum);
+            const seatDiv = document.createElement("div");
+            seatDiv.className = `seat ${isBooked ? "booked" : "available"}`;
+            seatDiv.innerText = seatNum;
+            if (!isBooked) {
+                seatDiv.addEventListener("click", () => {
+                    document.querySelectorAll("#seatMap .seat").forEach(s => s.classList.remove("selected"));
+                    seatDiv.classList.add("selected");
+                });
+            }
+            seatContainer.appendChild(seatDiv);
+        });
+        modal.style.display = "flex";
+    }
+
+    document.getElementById("confirmBookingBtn").addEventListener("click", () => {
+        const selectedSeatElem = document.querySelector("#seatMap .seat.selected");
+        if (!selectedSeatElem) {
+            alert("Пожалуйста, выберите место.");
+            return;
+        }
+        const seatNumber = parseInt(selectedSeatElem.innerText);
+        if (!selectedTicket) return;
+        
+        const seatKey = `${selectedTicket.transportType}_${selectedTicket.id}`;
+        if (!bookedSeats[seatKey]) bookedSeats[seatKey] = [];
+        if (bookedSeats[seatKey].includes(seatNumber)) {
+            alert("Это место уже забронировано!");
+            return;
+        }
+        bookedSeats[seatKey].push(seatNumber);
+        alert(`✅ Место ${seatNumber} забронировано! Спасибо за покупку.`);
+        document.getElementById("seatModal").style.display = "none";
+        renderTickets(currentTransport, getActiveFilter());
+    });
+
+    function getActiveFilter() {
+        const active = document.querySelector(".filter-chip.active");
+        return active ? active.dataset.filter : "all";
+    }
+
+    // Navigation
+    function switchPage(page) {
+        document.querySelectorAll('[id$="Page"]').forEach(el => el.style.display = "none");
+        document.getElementById(`${page}Page`).style.display = "block";
+        
+        const titles = {
+            tickets: "🎫 Поиск билетов",
+            routes: "🗺️ Маршруты",
+            stations: "📍 Вокзалы и аэропорты",
+            orders: "📋 Мои заказы",
+            favorites: "❤️ Избранное",
+            support: "❓ Поддержка",
+            settings: "⚙️ Настройки"
+        };
+        document.getElementById("pageTitle").innerText = titles[page] || "TravelEasy";
+        
+        document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+        document.querySelector(`.nav-item[data-page="${page}"]`).classList.add("active");
+        
+        if (page === "tickets") renderTickets(currentTransport, getActiveFilter());
+        
+        // Close sidebar on mobile after click
+        if (window.innerWidth <= 768) {
+            document.getElementById("sidebar").classList.remove("open");
+        }
+    }
+
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.addEventListener("click", () => {
+            const page = item.dataset.page;
+            if (page) switchPage(page);
+        });
+    });
+
+    // Filters
+    document.querySelectorAll(".filter-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+            document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+            chip.classList.add("active");
+            renderTickets(currentTransport, chip.dataset.filter);
+        });
+    });
+
+    // Tabs
+    document.querySelectorAll(".tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            currentTransport = tab.dataset.transport;
+            renderTickets(currentTransport, getActiveFilter());
+        });
+    });
+
+    // Search
+    document.getElementById("searchBtn").addEventListener("click", () => {
+        const from = document.getElementById("fromCity").value.trim();
+        const to = document.getElementById("toCity").value.trim();
+        alert(`🔍 Поиск: ${from || "любой город"} → ${to || "любой город"}`);
+        renderTickets(currentTransport, getActiveFilter());
+    });
+
+    // Modal close
+    document.querySelector(".close-modal").addEventListener("click", () => {
+        document.getElementById("seatModal").style.display = "none";
+    });
+    window.addEventListener("click", (e) => {
+        const modal = document.getElementById("seatModal");
+        if (e.target === modal) modal.style.display = "none";
+    });
+
+    // Mobile menu toggle
+    document.getElementById("mobileMenuToggle").addEventListener("click", () => {
+        document.getElementById("sidebar").classList.toggle("open");
+    });
+
+    // Initial render
+    renderTickets("train", "all");
+</script>
+</body>
+</html>
